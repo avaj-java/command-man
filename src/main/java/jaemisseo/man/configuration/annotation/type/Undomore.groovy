@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * Created by sujkim on 2017-06-04.
+ * Created by sujkim on 2017-12-25.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@interface Undoable {
+@interface Undomore {
 
 }
