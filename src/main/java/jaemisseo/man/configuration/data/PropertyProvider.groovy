@@ -78,7 +78,7 @@ class PropertyProvider {
         propman.set("${propertyPrefix}${propertyName}", value ?: '')
     }
 
-    void setRaw(String propertyName, def value){
+    void setToRawProperty(String propertyName, def value){
         propman.set(propertyName, value ?: '')
     }
 
@@ -90,6 +90,11 @@ class PropertyProvider {
     @Filter('get')
     def get(String propertyName){
         return propman.get("${propertyPrefix}${propertyName}") ?: propman.get(propertyName)
+    }
+
+    @Filter('getRaw')
+    def getRaw(String propertyName){
+        return propman.getRaw("${propertyPrefix}${propertyName}") ?: propman.getRaw(propertyName)
     }
 
     @Filter('parse')
