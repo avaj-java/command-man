@@ -116,11 +116,11 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
             // installer.jar path
             'lib.dir': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getParentFile()?.getPath() ) ?: '',
             'lib.path': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getPath() ) ?: '',
-            'lib.version': FileMan.getFileFromResource('.version')?.text,
-            'lib.compiler': FileMan.getFileFromResource('.compiler')?.text,
-            'lib.build.date': FileMan.getFileFromResource('.date')?.text,
-            'product.name': FileMan.getFileFromResource('.productname')?.text?.trim(),
-            'product.version': FileMan.getFileFromResource('.productversion')?.text?.trim(),
+            'lib.version': FileMan.getFileFromResource('.version')?.text ?: '',
+            'lib.compiler': FileMan.getFileFromResource('.compiler')?.text ?: '',
+            'lib.build.date': FileMan.getFileFromResource('.date')?.text ?: '',
+            'product.name': FileMan.getFileFromResource('.productname')?.text?.trim() ?: '',
+            'product.version': FileMan.getFileFromResource('.productversion')?.text?.trim() ?: '',
         ])
         return propman
     }
@@ -170,6 +170,53 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
         return dataMap[key]
     }
 
+    /*****
+     * Get
+     *****/
+    List<String> getNoDashOptionList(){
+        return getExternalProperties().get('') ?: []
+    }
+
+    List<String> getDashOptionList(){
+        return getExternalProperties().properties.findAll{
+            it.key != '' && it.key != '--'
+        }.collect{
+            it.key
+        }
+    }
+
+    List<String> getDashDashOptionList(){
+        return getExternalProperties().get('--') ?: []
+    }
+
+    Map<String, String> getDashOptions(){
+        return getExternalProperties().properties.findAll{
+            it.key != '' && it.key != '--'
+        }
+    }
+
+
+    /*****
+     * Has
+     *****/
+    boolean hasNoDashOption(String optionName){
+        return getNoDashOptionList()?.contains(optionName)
+    }
+
+    boolean hasDashOption(String optionName){
+        return getDashOptionList()?.contains(optionName)
+    }
+
+    boolean hasDashOption(String optionName, Object value){
+        String compareValue = value.toString()
+        return !!getExternalProperties().properties.findAll{
+            it.key != '' && it.key != '--' && it.key == optionName && it.value.toString() == compareValue
+        }
+    }
+
+    boolean hasDashDashOption(String optionName){
+        return getDashDashOptionList()?.contains(optionName)
+    }
 
 
     /**
