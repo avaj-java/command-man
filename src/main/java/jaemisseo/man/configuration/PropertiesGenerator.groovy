@@ -110,15 +110,17 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
                 'java.home': replacePathWinToLin( System.getProperty('java.home') ),
                 'user.dir': replacePathWinToLin( System.getProperty('user.dir') ),
                 'user.home': replacePathWinToLin( System.getProperty('user.home') ),
-                //TODO: maybe programProperties
-                // installer.jar path
-                'lib.dir': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getParentFile()?.getPath() ) ?: '',
-                'lib.path': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getPath() ) ?: '',
-                'lib.version': FileMan.getFileFromResource('.version').text,
-                'lib.compiler': FileMan.getFileFromResource('.compiler').text,
-                'lib.build.date': FileMan.getFileFromResource('.date').text,
-                'product.name': FileMan.getFileFromResource('.productname').text?.trim(),
-                'product.version': FileMan.getFileFromResource('.productversion').text?.trim(),
+        ])
+        /** maybe programProperties **/
+        propman.merge([
+            // installer.jar path
+            'lib.dir': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getParentFile()?.getPath() ) ?: '',
+            'lib.path': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getPath() ) ?: '',
+            'lib.version': FileMan.getFileFromResource('.version')?.text,
+            'lib.compiler': FileMan.getFileFromResource('.compiler')?.text,
+            'lib.build.date': FileMan.getFileFromResource('.date')?.text,
+            'product.name': FileMan.getFileFromResource('.productname')?.text?.trim(),
+            'product.version': FileMan.getFileFromResource('.productversion')?.text?.trim(),
         ])
         return propman
     }
