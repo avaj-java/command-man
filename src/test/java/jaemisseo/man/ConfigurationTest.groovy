@@ -18,7 +18,7 @@ class groovy {
     @Test
     void propertiesTest(){
         /** Make Properties **/
-        String[] args = 'commandA commandB commandC -dashOptionA -dashOptionB -dashOptionCKey=dashOptionValue --dashDashOption1 --dashDashOption2'.split(' ')
+        String[] args = 'commandA commandB commandC -dashOptionA -dashOptionB -dashOptionC=dashOptionValue --dashDashOption1 --dashDashOption2'.split(' ')
         Config config = new Config().makeProperties(args)
 
         println config.propGen
@@ -41,7 +41,7 @@ class groovy {
         /** DashOption (KEY) **/
         assert config.propGen.hasDashOption('dashOptionA')
         assert config.propGen.hasDashOption('dashOptionB')
-        assert config.propGen.hasDashOption('dashOptionCKey')
+        assert config.propGen.hasDashOption('dashOptionC')
         assert !config.propGen.hasDashOption('dashOptionD')
 
         /** DashOption (KEY and VALUE) **/
@@ -51,10 +51,16 @@ class groovy {
         assert !config.propGen.hasDashOption('dashOptionA', 'false')
         assert !config.propGen.hasDashOption('dashOptionA', '')
         assert !config.propGen.hasDashOption('dashOptionB', 'false')
-        assert !config.propGen.hasDashOption('dashOptionCKey', '1')
-        assert !config.propGen.hasDashOption('dashOptionCKey', 'A')
-        assert config.propGen.hasDashOption('dashOptionCKey', 'dashOptionValue')
+        assert !config.propGen.hasDashOption('dashOptionC', '1')
+        assert !config.propGen.hasDashOption('dashOptionC', 'A')
+        assert config.propGen.hasDashOption('dashOptionC', 'dashOptionValue')
         assert !config.propGen.hasDashOption('dashOptionD', 'testValue')
+
+        /** DashOption (value) **/
+        assert config.propGen.getValueFromDashOption('dashOptionA') == 'true'
+        assert config.propGen.getValueFromDashOption('dashOptionB') == 'true'
+        assert config.propGen.getValueFromDashOption('dashOptionC') == 'dashOptionValue'
+        assert config.propGen.getValueFromDashOption('dashOptionD') == null
 
         /** DashDashOption **/
         assert config.propGen.hasDashDashOption('dashDashOption1')

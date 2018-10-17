@@ -195,6 +195,10 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
         }
     }
 
+    String getValueFromDashOption(String optionName){
+        return getExternalProperties().properties.get(optionName)
+    }
+
 
     /*****
      * Has
