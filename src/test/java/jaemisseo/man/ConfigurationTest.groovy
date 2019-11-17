@@ -3,7 +3,7 @@ package jaemisseo.man
 import jaemisseo.man.configuration.Config
 import org.junit.Test
 
-class groovy {
+class ConfigurationTest {
 
     @Test
     void main(){
@@ -45,11 +45,12 @@ class groovy {
         assert !config.propGen.hasDashOption('dashOptionD')
 
         /** DashOption (KEY and VALUE) **/
-        assert config.propGen.hasDashOption('dashOptionA', true)
-        assert config.propGen.hasDashOption('dashOptionA', 'true')
-        assert !config.propGen.hasDashOption('dashOptionA', false)
-        assert !config.propGen.hasDashOption('dashOptionA', 'false')
-        assert !config.propGen.hasDashOption('dashOptionA', '')
+        assert config.propGen.hasDashOption('dashOptionA', [])
+//        assert config.propGen.hasDashOption('dashOptionA', true)
+//        assert config.propGen.hasDashOption('dashOptionA', 'true')
+//        assert !config.propGen.hasDashOption('dashOptionA', false)
+//        assert !config.propGen.hasDashOption('dashOptionA', 'false')
+//        assert !config.propGen.hasDashOption('dashOptionA', '')
         assert !config.propGen.hasDashOption('dashOptionB', 'false')
         assert !config.propGen.hasDashOption('dashOptionC', '1')
         assert !config.propGen.hasDashOption('dashOptionC', 'A')
@@ -57,8 +58,8 @@ class groovy {
         assert !config.propGen.hasDashOption('dashOptionD', 'testValue')
 
         /** DashOption (value) **/
-        assert config.propGen.getValueFromDashOption('dashOptionA') == 'true'
-        assert config.propGen.getValueFromDashOption('dashOptionB') == 'true'
+        assert config.propGen.getValueFromDashOption('dashOptionA') == []
+        assert config.propGen.getValueFromDashOption('dashOptionB') == []
         assert config.propGen.getValueFromDashOption('dashOptionC') == 'dashOptionValue'
         assert config.propGen.getValueFromDashOption('dashOptionD') == null
 

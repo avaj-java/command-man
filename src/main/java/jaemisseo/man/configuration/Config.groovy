@@ -2,6 +2,7 @@ package jaemisseo.man.configuration
 
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.util.StatusPrinter
+import jaemisseo.man.FileMan
 import jaemisseo.man.configuration.annotation.*
 import jaemisseo.man.configuration.annotation.method.After
 import jaemisseo.man.configuration.annotation.method.Before
@@ -67,11 +68,13 @@ class Config {
 
     Config setup(String packageNameToScan, String[] args){
         try{
+
+            makeProperties(args)
+            makeLogger()
             scan('jaemisseo.man')
             scan(packageNameToScan)
 
             makeProperties(args)
-            makeLogger()
 
             commandCalledByUserList = getCommandListCalledByUser(propGen.getExternalProperties())
             taskCalledByUserList = getTaskListCalledByUser(propGen.getExternalProperties())
@@ -95,15 +98,17 @@ class Config {
     }
 
     Config makeProperties(String[] args){
+        logger.debug "[MAKE] Properties"
         this.args = args
         propGen = new PropertiesGenerator()
         propGen.makeDefaultProperties()
-        propGen.makeProgramProperties()
+        propGen.makeProgramProperties(args)
         propGen.makeExternalProperties(args, lowerTaskNameAndValueProtocolListMap)
         return this
     }
 
     Config makeLogger(String[] args){
+        logger.debug "[MAKE] Logger"
         logGen = new LogGenerator()
         boolean modeSystemDebugLog = false
         boolean modeSystemDebugLogFile = false
@@ -152,12 +157,14 @@ class Config {
      * 2. New Instance
      *************************/
     Config scan(String packageName){
+        logger.debug "[SCAN] ${packageName}"
         try {
             //1. Scan Classes
-            List<Class> jobList = Util.findAllClasses(packageName, [Job, Employee])
-            List<Class> taskList = Util.findAllClasses(packageName, [Task])
-            List<Class> dataList = Util.findAllClasses(packageName, [Data])
-            List<Class> beanList = Util.findAllClasses(packageName, [Bean])
+//            println "1. ${new Date().getTime()}"
+            List<Class> jobList = findAllClasses(packageName, [Job, Employee])
+            List<Class> taskList = findAllClasses(packageName, [Task])
+            List<Class> dataList = findAllClasses(packageName, [Data])
+            List<Class> beanList = findAllClasses(packageName, [Bean])
 
             //SJTEST
 //            println "Job:${jobList.size()} / Task:${taskList.size()} / Data:${dataList.size()} / Bean:${beanList.size()}"
@@ -279,6 +286,36 @@ class Config {
         }
     }
 
+    static List<Class> findAllClasses(String packageName, List<Class> annotationList){
+        List<Class> resultList = []
+        String fileExtension = "classes"
+        String annotationName
+        String fileName
+        //- Check File
+        try{
+            annotationList.each{ clazz ->
+                annotationName = clazz.getSimpleName()
+                fileName = "${packageName.replace('.', '_')}-${annotationName}.${fileExtension}"
+                File resource = FileMan.getFileFromResource("scan-target-classes/${fileName}")
+                if (resource){
+                    List<String> lineList = new FileMan().loadFileContent(resource)
+                    List<Class> classList = lineList.collect{ Class.forName(it) } as List<Class>
+                    resultList.addAll( classList )
+                }else{
+                    throw new FileNotFoundException()
+                }
+            }
+        }catch(FileNotFoundException fnfe){
+            logger.warn("Unfortunately Does not exists pre-maked-target-classes (${fileName}). so slow loading speed, But functions are work.")
+            //- Check Classes
+            resultList.addAll( Util.findAllClasses(packageName, annotationList) )
+        }catch(e){
+            logger.warn('Error during load resource files to load classes', e)
+            //- Check Classes
+            resultList.addAll( Util.findAllClasses(packageName, annotationList) )
+        }
+        return resultList
+    }
 
 
 
@@ -287,6 +324,7 @@ class Config {
      * INEJCT Bean
      *************************/
     Config inject(){
+        logger.debug "[Inject]"
         //1. INJECT to FIELD
         List<FieldInfomation> injectFieldList = reflectionMap.findAll{ clazz, reflect ->
             reflect.injectFieldNameMap
@@ -449,6 +487,7 @@ class Config {
      * INIT INSTANCE
      *************************/
     void init(){
+        logger.debug "[Init]"
         List<MethodInfomation> initMethodList = reflectionMap.findAll{ clazz, reflect -> reflect.initMethod }.collect{ clazz, reflect -> reflect.initMethod }
         initMethodList.each{ info ->
             Class clazz = info.clazz

@@ -195,7 +195,7 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
         }
     }
 
-    String getValueFromDashOption(String optionName){
+    Object getValueFromDashOption(String optionName){
         return getExternalProperties().properties.get(optionName)
     }
 
@@ -231,21 +231,27 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
         return this
     }
 
-    PropertiesGenerator makeProgramProperties(){
-        programProperties = new PropMan()
-        return this
-    }
-
-    PropertiesGenerator makeExternalProperties(String[] args, Map<Class, List> valueProtocolListMap){
+    PropertiesGenerator makeProgramProperties(String[] args){
         Map argsMap = genApplicationPropertiesValueMap(args)
-        Map propertiesValueMap = genApplicationPropertiesValueMap(argsMap, valueProtocolListMap)
-        externalProperties = new PropMan(propertiesValueMap)
-        //
+        programProperties = new PropMan()
         programProperties.set('program.args', args.join(' '))
         String normalProperties = argsMap.findAll{ it.key != '' && it.key != '--' }.collect{ "-${it.key}=${it.value}" }.join(' ')
         String dashDashFlagProperties = argsMap['--'].collect{ "--${it}" }.join(' ')
         String argsExceptCommand = normalProperties+ ' ' +dashDashFlagProperties
         programProperties.set('program.args.except.command', argsExceptCommand)
+        return this
+    }
+
+    PropertiesGenerator makeExternalProperties(String[] args, Map<Class, List> valueProtocolListMap){
+        Map argsMap = genApplicationPropertiesValueMap(args)
+        if (!externalProperties)
+            externalProperties = new PropMan()
+        if (valueProtocolListMap){
+            Map propertiesValueMap = genApplicationPropertiesValueMap(argsMap, valueProtocolListMap)
+            externalProperties.merge(propertiesValueMap)
+        }else{
+            externalProperties.merge(argsMap)
+        }
         return this
     }
 
