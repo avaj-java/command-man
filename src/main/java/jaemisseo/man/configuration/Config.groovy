@@ -298,7 +298,7 @@ class Config {
                 fileName = "${packageName.replace('.', '_')}-${annotationName}.${fileExtension}"
                 File resource = FileMan.getFileFromResource("scan-target-classes/${fileName}")
                 if (resource){
-                    List<String> lineList = new FileMan().loadFileContent(resource)
+                    List<String> lineList = FileMan.getListFromFile(resource)
                     List<Class> classList = lineList.collect{ Class.forName(it) } as List<Class>
                     resultList.addAll( classList )
                 }else{
