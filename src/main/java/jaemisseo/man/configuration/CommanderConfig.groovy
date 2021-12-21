@@ -10,6 +10,7 @@ import jaemisseo.man.configuration.annotation.method.Command
 import jaemisseo.man.configuration.annotation.method.Filter
 import jaemisseo.man.configuration.annotation.method.Init
 import jaemisseo.man.configuration.annotation.type.Bean
+import jaemisseo.man.configuration.annotation.type.CommandMessenger
 import jaemisseo.man.configuration.annotation.type.Data
 import jaemisseo.man.configuration.annotation.type.Employee
 import jaemisseo.man.configuration.annotation.type.Job
@@ -35,7 +36,7 @@ import java.lang.reflect.Method
 /**
  * Created by sujkim on 2017-06-12.
  */
-class Config {
+public class CommanderConfig {
 
     static final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -66,7 +67,7 @@ class Config {
 
 
 
-    Config setup(String packageNameToScan, String[] args){
+    CommanderConfig setup(String packageNameToScan, String[] args){
         try{
 
             makeProperties(args)
@@ -97,7 +98,7 @@ class Config {
         return this
     }
 
-    Config makeProperties(String[] args){
+    CommanderConfig makeProperties(String[] args){
         logger.debug "[MAKE] Properties"
         this.args = args
         propGen = new PropertiesGenerator()
@@ -107,7 +108,7 @@ class Config {
         return this
     }
 
-    Config makeLogger(String[] args){
+    CommanderConfig makeLogger(String[] args){
         logger.debug "[MAKE] Logger"
         logGen = new LogGenerator()
         boolean modeSystemDebugLog = false
@@ -156,15 +157,16 @@ class Config {
      * 1. Scan Class
      * 2. New Instance
      *************************/
-    Config scan(String packageName){
+    CommanderConfig scan(String packageName){
         logger.debug "[SCAN] ${packageName}"
         try {
             //1. Scan Classes
 //            println "1. ${new Date().getTime()}"
-            List<Class> jobList = findAllClasses(packageName, [Job, Employee])
-            List<Class> taskList = findAllClasses(packageName, [Task])
-            List<Class> dataList = findAllClasses(packageName, [Data])
-            List<Class> beanList = findAllClasses(packageName, [Bean])
+            List<Class> commandMessengers = findAllClasses(packageName, [CommandMessenger])
+            List<Class> jobs = findAllClasses(packageName, [Job, Employee])
+            List<Class> tasks = findAllClasses(packageName, [Task])
+            List<Class> datas = findAllClasses(packageName, [Data])
+            List<Class> beans = findAllClasses(packageName, [Bean])
 
             //SJTEST
 //            println "Job:${jobList.size()} / Task:${taskList.size()} / Data:${dataList.size()} / Bean:${beanList.size()}"
@@ -174,15 +176,22 @@ class Config {
             Class configClazz =this.getClass()
             reflectionMap[configClazz] = new ReflectInfomation(clazz: configClazz, instance: this)
 
+            //- CommandHandler
+            commandMessengers.each{ Class clazz ->
+                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
+                scanDefault(reflectionMap[clazz])
+                scanCommand(reflectionMap[clazz])
+            }
+
             //- Job
-            jobList.each{ Class clazz ->
+            jobs.each{ Class clazz ->
                 reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
                 scanDefault(reflectionMap[clazz])
                 scanCommand(reflectionMap[clazz])
             }
 
             //- Task
-            taskList.each{ Class clazz ->
+            tasks.each{ Class clazz ->
                 reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
                 scanDefault(reflectionMap[clazz])
                 // ValueProtocol
@@ -192,14 +201,14 @@ class Config {
             }
 
             //- Data
-            dataList.each { Class clazz ->
+            datas.each { Class clazz ->
                 reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
                 scanDefault(reflectionMap[clazz])
                 scanMethod(reflectionMap[clazz])
             }
 
             //- Bean
-            beanList.each{ Class clazz ->
+            beans.each{ Class clazz ->
                 reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
                 scanDefault(reflectionMap[clazz])
             }
@@ -296,7 +305,12 @@ class Config {
             annotationList.each{ clazz ->
                 annotationName = clazz.getSimpleName()
                 fileName = "${packageName.replace('.', '_')}-${annotationName}.${fileExtension}"
-                File resource = FileMan.getFileFromResource("scan-target-classes/${fileName}")
+                File resource
+                try{
+                    resource = FileMan.getFileFromResource("scan-target-classes/${fileName}")
+                }catch(e){
+                    e
+                }
                 if (resource){
                     List<String> lineList = FileMan.getListFromFile(resource)
                     List<Class> classList = lineList.collect{ Class.forName(it) } as List<Class>
@@ -323,7 +337,7 @@ class Config {
     /*************************
      * INEJCT Bean
      *************************/
-    Config inject(){
+    CommanderConfig inject(){
         logger.debug "[Inject]"
         //1. INJECT to FIELD
         List<FieldInfomation> injectFieldList = reflectionMap.findAll{ clazz, reflect ->
@@ -629,11 +643,11 @@ class Config {
         return foundedInstanceList.find{ return true }
     }
 
-    List<Object> findAllInstances(Class annotation){
+    List<?> findAllInstances(Class annotation){
         return findAllInstances([annotation])
     }
 
-    List<Object> findAllInstances(List<Class> annotationList){
+    List<?> findAllInstances(List<Class> annotationList){
         List<Object> foundedInstanceList = reflectionMap.findAll{ clazz, info ->
             Object o = info.clazz.getAnnotations().find{ annotationList.contains(it.annotationType()) }
             return o

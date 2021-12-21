@@ -1,6 +1,6 @@
 package jaemisseo.man
 
-import jaemisseo.man.configuration.Config
+import jaemisseo.man.configuration.CommanderConfig
 import org.junit.Test
 
 class ConfigurationTest {
@@ -10,7 +10,7 @@ class ConfigurationTest {
 
         /** Make Properties **/
         String[] args = []
-        Config config = new Config().makeProperties(args)
+        CommanderConfig config = new CommanderConfig().makeProperties(args)
         assert config
     }
 
@@ -19,7 +19,7 @@ class ConfigurationTest {
     void propertiesTest(){
         /** Make Properties **/
         String[] args = 'commandA commandB commandC -dashOptionA -dashOptionB -dashOptionC=dashOptionValue --dashDashOption1 --dashDashOption2'.split(' ')
-        Config config = new Config().makeProperties(args)
+        CommanderConfig config = new CommanderConfig().makeProperties(args)
 
         println config.propGen
         println config.propGen.programProperties

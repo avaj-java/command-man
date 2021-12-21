@@ -159,6 +159,8 @@ class PropertyProvider {
     @Filter('getFilePath')
     String getFilePath(String propertyName){
         String filePath = get(propertyName)
+        if (filePath == null)
+            filePath = ""
         return FileMan.getFullPath(filePath)
     }
 

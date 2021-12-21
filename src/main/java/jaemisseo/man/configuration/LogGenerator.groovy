@@ -48,7 +48,13 @@ class LogGenerator {
      *
      *************************/
     Level getConsoleLogLevel(){
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        org.slf4j.Logger rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+        if ( !(rootLogger instanceof ch.qos.logback.classic.Logger) ){
+            return Level.INFO
+        }
+
+//        Logger rootLogger = new ch.qos.logback.classic.LoggerContext().getLogger(Logger.ROOT_LOGGER_NAME)
         ConsoleAppender consoleAppender = rootLogger.getAppender(consoleAppenderName)
         String nowConsoleLogLevel
         consoleAppender.getCopyOfAttachedFiltersList().each{ Filter filter ->
@@ -59,7 +65,12 @@ class LogGenerator {
     }
 
     String getConsoleLogPattern(){
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        org.slf4j.Logger rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+        if ( !(rootLogger instanceof ch.qos.logback.classic.Logger) ){
+            return "%msg %n"
+        }
+
         ConsoleAppender consoleAppender = rootLogger.getAppender(consoleAppenderName)
         String nowConsoleLogPattern = ((PatternLayoutEncoder)consoleAppender.encoder).pattern
         return nowConsoleLogPattern
