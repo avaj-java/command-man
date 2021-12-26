@@ -1,7 +1,7 @@
 package jaemisseo.man.configuration.handler;
 
-import jaemisseo.man.configuration.config.Environment;
-import jaemisseo.man.configuration.config.SelfAware;
+import jaemisseo.man.configuration.context.Environment;
+import jaemisseo.man.configuration.context.SelfAware;
 
 abstract public class AbstractCommandMessenger {
 
