@@ -3,7 +3,7 @@ package jaemisseo.man.configuration.reflection
 /**
  * Created by sujkim on 2017-06-22.
  */
-class ReflectInfomation {
+class Dependency {
 
     //Own
     Class clazz

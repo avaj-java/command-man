@@ -1,20 +1,20 @@
-package jaemisseo.man.configuration.exception
+package jaemisseo.man.configuration.exception;
 
-class OutOfArgumentException extends Exception{
+public class OutOfArgumentException extends Exception{
 
     OutOfArgumentException() {
     }
 
     OutOfArgumentException(String message) {
-        super(message)
+        super(message);
     }
 
     OutOfArgumentException(String message, Throwable cause) {
-        super(message, cause)
+        super(message, cause);
     }
 
     OutOfArgumentException(Throwable cause) {
-        super(cause)
+        super(cause);
     }
 
 }

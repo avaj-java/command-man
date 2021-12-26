@@ -1,8 +1,10 @@
-package jaemisseo.man.configuration
+package jaemisseo.man.configuration.context
 
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.util.StatusPrinter
 import jaemisseo.man.FileMan
+import jaemisseo.man.configuration.log.LogGenerator
+import jaemisseo.man.configuration.properties.PropertiesGenerator
 import jaemisseo.man.configuration.annotation.*
 import jaemisseo.man.configuration.annotation.method.After
 import jaemisseo.man.configuration.annotation.method.Before
@@ -16,10 +18,11 @@ import jaemisseo.man.configuration.annotation.type.Employee
 import jaemisseo.man.configuration.annotation.type.Job
 import jaemisseo.man.configuration.annotation.type.Task
 import jaemisseo.man.configuration.annotation.type.TerminalValueProtocol
+import jaemisseo.man.configuration.exception.CanNotFoundBeanException
 import jaemisseo.man.configuration.exception.OutOfArgumentException
 import jaemisseo.man.configuration.reflection.FieldInfomation
 import jaemisseo.man.configuration.reflection.MethodInfomation
-import jaemisseo.man.configuration.reflection.ReflectInfomation
+import jaemisseo.man.configuration.reflection.Dependency
 import jaemisseo.man.configuration.data.PropertyProvider
 import jaemisseo.man.configuration.data.Validator
 import jaemisseo.man.PropMan
@@ -33,15 +36,12 @@ import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Method
 
-/**
- * Created by sujkim on 2017-06-12.
- */
-public class CommanderConfig {
+class CommanderConfig {
 
     static final Logger logger = LoggerFactory.getLogger(getClass());
 
     //Default
-    Map<Class, ReflectInfomation> reflectionMap = [:]
+    Map<Class, Dependency> reflectionMap = [:]
 
     //Job
     Map<String, MethodInfomation> methodCommandNameMap = [:]
@@ -84,8 +84,8 @@ public class CommanderConfig {
             provider.propGen = propGen
             provider.logGen = logGen
 
-            inject()
-            init()
+//            inject()
+//            init()
 
         }catch(OutOfArgumentException ooae){
             logger.error(ooae.getMessage())
@@ -143,7 +143,7 @@ public class CommanderConfig {
                 taskCalledByUserList << taskName
         }
         // -Collect Task Alias
-        Map<Class, ReflectInfomation> aliasTaskReflectionMap = reflectionMap.findAll{ clazz, info ->
+        Map<Class, Dependency> aliasTaskReflectionMap = reflectionMap.findAll{ clazz, info ->
             info.alias && propmanExternal.get(info.alias)
         }
         aliasTaskReflectionMap.each{ clazz, info ->
@@ -162,38 +162,37 @@ public class CommanderConfig {
         try {
             //1. Scan Classes
 //            println "1. ${new Date().getTime()}"
-            List<Class> commandMessengers = findAllClasses(packageName, [CommandMessenger])
-            List<Class> jobs = findAllClasses(packageName, [Job, Employee])
-            List<Class> tasks = findAllClasses(packageName, [Task])
-            List<Class> datas = findAllClasses(packageName, [Data])
-            List<Class> beans = findAllClasses(packageName, [Bean])
+            List<Class> commandHandlerList = findAllClasses(packageName, [CommandMessenger])
+            List<Class> jobList = findAllClasses(packageName, [Job, Employee])
+            List<Class> taskList = findAllClasses(packageName, [Task])
+            List<Class> dataList = findAllClasses(packageName, [Data])
+            List<Class> beanList = findAllClasses(packageName, [Bean])
 
             //SJTEST
 //            println "Job:${jobList.size()} / Task:${taskList.size()} / Data:${dataList.size()} / Bean:${beanList.size()}"
 
             //2. Scan Method & Field
             //- Config
-            Class configClazz =this.getClass()
-            reflectionMap[configClazz] = new ReflectInfomation(clazz: configClazz, instance: this)
+            makeDependency(getClass(), this)
 
             //- CommandHandler
-            commandMessengers.each{ Class clazz ->
-                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
-                scanDefault(reflectionMap[clazz])
-                scanCommand(reflectionMap[clazz])
+            commandHandlerList.each{ Class clazz ->
+                Dependency dependency = makeDependency(clazz)
+                scanDefault(dependency)
+                scanCommand(dependency)
             }
 
             //- Job
-            jobs.each{ Class clazz ->
-                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
-                scanDefault(reflectionMap[clazz])
-                scanCommand(reflectionMap[clazz])
+            jobList.each{ Class clazz ->
+                Dependency dependency = makeDependency(clazz)
+                scanDefault(dependency)
+                scanCommand(dependency)
             }
 
             //- Task
-            tasks.each{ Class clazz ->
-                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
-                scanDefault(reflectionMap[clazz])
+            taskList.each{ Class clazz ->
+                Dependency dependency = makeDependency(clazz)
+                scanDefault(dependency)
                 // ValueProtocol
                 TerminalValueProtocol protocolAnt = clazz.getAnnotation(TerminalValueProtocol)
                 if (protocolAnt && protocolAnt.value())
@@ -201,16 +200,16 @@ public class CommanderConfig {
             }
 
             //- Data
-            datas.each { Class clazz ->
-                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
-                scanDefault(reflectionMap[clazz])
-                scanMethod(reflectionMap[clazz])
+            dataList.each { Class clazz ->
+                Dependency dependency = makeDependency(clazz)
+                scanDefault(dependency)
+                scanMethod(dependency)
             }
 
             //- Bean
-            beans.each{ Class clazz ->
-                reflectionMap[clazz] = new ReflectInfomation(clazz: clazz, instance: clazz.newInstance())
-                scanDefault(reflectionMap[clazz])
+            beanList.each{ Class clazz ->
+                Dependency dependency = makeDependency(clazz)
+                scanDefault(dependency)
             }
 
         }catch(Exception e){
@@ -219,7 +218,27 @@ public class CommanderConfig {
         return this
     }
 
-    boolean scanDefault(ReflectInfomation reflect){
+    public Dependency makeDependency(Object clazzOrInstance){
+        Dependency dependency = null;
+
+        if (clazzOrInstance instanceof Class){
+            dependency = makeDependency(clazzOrInstance, clazzOrInstance.newInstance())
+        }else{
+            dependency = makeDependency(clazzOrInstance.getClass(), clazzOrInstance)
+        }
+
+        return dependency;
+    }
+
+    public Dependency makeDependency(Class clazz, Object instance){
+        Dependency dependency = new Dependency(clazz:clazz, instance:instance);
+        this.reflectionMap[clazz] = dependency;
+        return dependency;
+    }
+
+
+
+    boolean scanDefault(Dependency reflect){
         Class clazz = reflect.clazz
         Object instance = reflect.instance
         //- Type
@@ -259,7 +278,7 @@ public class CommanderConfig {
         }
     }
 
-    boolean scanCommand(ReflectInfomation reflect){
+    boolean scanCommand(Dependency reflect){
         Class clazz = reflect.clazz
         Object instance = reflect.instance
         clazz.getDeclaredMethods().each { Method method ->
@@ -283,7 +302,7 @@ public class CommanderConfig {
         }
     }
 
-    boolean scanMethod(ReflectInfomation reflect){
+    boolean scanMethod(Dependency reflect){
         Class clazz = reflect.clazz
         Object instance = reflect.instance
         clazz.getDeclaredMethods().each { Method method ->
@@ -337,7 +356,7 @@ public class CommanderConfig {
     /*************************
      * INEJCT Bean
      *************************/
-    CommanderConfig inject(){
+    CommanderConfig injectDependenciesToBean(){
         logger.debug "[Inject]"
         //1. INJECT to FIELD
         List<FieldInfomation> injectFieldList = reflectionMap.findAll{ clazz, reflect ->
@@ -348,19 +367,27 @@ public class CommanderConfig {
         injectFieldList.each{ info ->
             Class clazz = info.clazz
             Object instance = info.instance
-            Object injector = findInstance(clazz)
+            Object foundDependency = findInstance(clazz)
+            if (foundDependency == null)
+                throw new CanNotFoundBeanException();
             //inject
-            instance[info.fieldName] = injector
+            instance[info.fieldName] = foundDependency
         }
         //2. INJECT to METHOD
         List<MethodInfomation> injectMethodList = []
-        reflectionMap.each{ clazz, reflect ->
+        this.reflectionMap.each{ clazz, reflect ->
             reflect.injectMethodNameMap.each{ methodName, methodInfo ->
                 injectMethodList << methodInfo
             }
         }
         injectMethodList.each{ info ->
-            Object[] parameters = info.method.parameterTypes.collect{ findInstance(it) }
+            Object foundDependency;
+            Object[] parameters = info.method.parameterTypes.collect{
+                foundDependency = findInstance(it)
+                if (foundDependency == null)
+                    throw new CanNotFoundBeanException();
+                return foundDependency;
+            }
             //inject
             runMethod(info.instance, info.method, parameters)
         }
@@ -500,7 +527,7 @@ public class CommanderConfig {
     /*************************
      * INIT INSTANCE
      *************************/
-    void init(){
+    void makeBeanInit(){
         logger.debug "[Init]"
         List<MethodInfomation> initMethodList = reflectionMap.findAll{ clazz, reflect -> reflect.initMethod }.collect{ clazz, reflect -> reflect.initMethod }
         initMethodList.each{ info ->
@@ -635,7 +662,8 @@ public class CommanderConfig {
     }
 
     Object findInstanceByClass(Class clazz){
-        return reflectionMap[clazz].instance
+        Object foundInstance = reflectionMap[clazz]
+        return (foundInstance != null) ? foundInstance.instance : foundInstance;
     }
 
     Object findInstanceByAnnotation(Class annotation){

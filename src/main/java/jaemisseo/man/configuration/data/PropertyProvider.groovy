@@ -1,13 +1,12 @@
 package jaemisseo.man.configuration.data
 
-import jaemisseo.man.configuration.LogGenerator
-import jaemisseo.man.configuration.PropertiesGenerator
+import jaemisseo.man.configuration.log.LogGenerator
+import jaemisseo.man.configuration.properties.PropertiesGenerator
 import jaemisseo.man.configuration.annotation.method.Init
 import jaemisseo.man.configuration.annotation.method.Filter
 import jaemisseo.man.configuration.annotation.type.Data
 import jaemisseo.man.FileMan
 import jaemisseo.man.PropMan
-import jaemisseo.man.util.Util
 
 /**
  * Created by sujkim on 2017-06-20.

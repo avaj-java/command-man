@@ -1,4 +1,4 @@
-package jaemisseo.man.configuration
+package jaemisseo.man.configuration.properties
 
 import jaemisseo.man.configuration.annotation.type.Bean
 import jaemisseo.man.configuration.exception.OutOfArgumentException
@@ -116,11 +116,11 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
             // installer.jar path
             'lib.dir': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getParentFile()?.getPath() ) ?: '',
             'lib.path': replacePathWinToLin( new PropertiesGenerator().getThisAppFile()?.getPath() ) ?: '',
-            'lib.version': FileMan.getFileFromResource('.version')?.text ?: '',
-            'lib.compiler': FileMan.getFileFromResource('.compiler')?.text ?: '',
-            'lib.build.date': FileMan.getFileFromResource('.date')?.text ?: '',
-            'product.name': FileMan.getFileFromResource('.productname')?.text?.trim() ?: '',
-            'product.version': FileMan.getFileFromResource('.productversion')?.text?.trim() ?: '',
+            'lib.version': FileMan.getFileFromResourceWithoutException('.version')?.text ?: '',
+            'lib.compiler': FileMan.getFileFromResourceWithoutException('.compiler')?.text ?: '',
+            'lib.build.date': FileMan.getFileFromResourceWithoutException('.date')?.text ?: '',
+            'product.name': FileMan.getFileFromResourceWithoutException('.productname')?.text?.trim() ?: '',
+            'product.version': FileMan.getFileFromResourceWithoutException('.productversion')?.text?.trim() ?: '',
         ])
         return propman
     }

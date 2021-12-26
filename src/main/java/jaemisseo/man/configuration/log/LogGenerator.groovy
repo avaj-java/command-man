@@ -1,4 +1,4 @@
-package jaemisseo.man.configuration
+package jaemisseo.man.configuration.log
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -116,8 +116,11 @@ class LogGenerator {
         if (!logLevel && !pattern)
             return false
 
-        // -Console Appender
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        org.slf4j.Logger rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+        if ( !(rootLogger instanceof ch.qos.logback.classic.Logger) ){
+            return false
+        }
 
         /** Convert ConsoleAppender's ThresholdFilter **/
         ConsoleAppender consoleAppender = rootLogger.getAppender(consoleAppenderName)
@@ -173,7 +176,12 @@ class LogGenerator {
         if (!logLevel)
             return false
         // -File Appender
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+        org.slf4j.Logger rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+        if ( !(rootLogger instanceof ch.qos.logback.classic.Logger) ){
+            return false
+        }
         Level loggerLevelCode = Level.valueOf(logLevel)
 
         //Remove Appender & Stop

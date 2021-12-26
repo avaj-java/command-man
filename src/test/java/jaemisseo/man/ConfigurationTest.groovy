@@ -1,6 +1,6 @@
 package jaemisseo.man
 
-import jaemisseo.man.configuration.CommanderConfig
+import jaemisseo.man.configuration.config.CommanderConfig
 import org.junit.Test
 
 class ConfigurationTest {
