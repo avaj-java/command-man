@@ -141,6 +141,14 @@ class PropertyProvider {
         return resultList
     }
 
+    @Filter('getFilePath')
+    String getFilePath(String propertyName){
+        String filePath = get(propertyName)
+        if (filePath == null)
+            filePath = ""
+        return FileMan.getFullPath(filePath)
+    }
+
     @Filter('getFilePathList')
     List<String> getFilePathList(String propertyName){
         return getFilePathList(propertyName, '')
@@ -150,17 +158,29 @@ class PropertyProvider {
         List<String> resultList = []
         List<String> valueList = getList(propertyName)
         valueList.each{
-            resultList.addAll( FileMan.getSubFilePathList(it, extention) )
+            List<String> subFilePaths = FileMan.getSubFilePathList(it, extention)
+            resultList.addAll( subFilePaths )
         }
         return resultList
     }
 
-    @Filter('getFilePath')
-    String getFilePath(String propertyName){
-        String filePath = get(propertyName)
-        if (filePath == null)
-            filePath = ""
-        return FileMan.getFullPath(filePath)
+    @Filter('findAllFilePaths')
+    List<String> findAllFilePaths(String propertyName){
+        return findAllFilePaths(propertyName, '')
     }
+
+    List<String> findAllFilePaths(String propertyName, String extention){
+        List<String> resultList = []
+        List<String> valueList = getList(propertyName)
+        valueList.each{
+            List<File> deeplyFoundFiles = FileMan.findAll(it)
+            deeplyFoundFiles.each{
+                resultList.add( it.path )
+            }
+        }
+        return resultList
+    }
+
+
 
 }

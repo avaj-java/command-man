@@ -59,7 +59,13 @@ class PropertiesGenerator extends jaemisseo.man.util.PropertiesGenerator{
                             applicationPropertyValueMap[propName] = parseValue(value)
                         }
                     }else{
-                        throw new OutOfArgumentException("So Many arguments!. Check ${proppertyName}'s Arguments")
+                        int size = valueProtocolList.size()
+                        int maxPreviewCount = 3
+                        boolean sizeIsOverPreview = size > maxPreviewCount
+                        int fromPreviewIndex = 0
+                        int toPreviewIndex = sizeIsOverPreview ? maxPreviewCount -1 : size -1
+                        List<?> previewProtocolList = valueProtocolList[fromPreviewIndex..toPreviewIndex]
+                        throw new OutOfArgumentException("So Many arguments!. Check ${proppertyName}'s Arguments. - Size: ${size}, Protocols: ${previewProtocolList} ${sizeIsOverPreview?' ... ':''}")
                     }
                 }
 
