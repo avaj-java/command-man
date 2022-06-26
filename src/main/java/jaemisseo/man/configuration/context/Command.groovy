@@ -2,7 +2,7 @@ package jaemisseo.man.configuration.context;
 
 public class Command {
 
-    public Command(String[] args){
+    public Command(String... args){
         this.args = args;
     }
 
