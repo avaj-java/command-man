@@ -15,6 +15,6 @@ terminal command manager
 2. Set dependencies
     ```gradle
     dependencies {
-      implementation 'com.github.avaj-java:command-man:0.5.4'
+      implementation 'com.github.avaj-java:command-man:0.5.5'
     }
     ```
