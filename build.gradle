@@ -56,7 +56,7 @@ dependencies {
 
     compile ( (rootProject?.findProject("${coreBasePath}:common-util")) ? project(":${coreBasePath}:common-util") : 'com.github.avaj-java:common-util:0.4.4' )
     compile ( (rootProject?.findProject("${coreBasePath}:common-man")) ? project(":${coreBasePath}:common-man") : 'com.github.avaj-java:common-man:0.5.7' )
-    compile ( (rootProject?.findProject("${coreBasePath}:fileman")) ? project(":${coreBasePath}:fileman") : 'com.github.avaj-java:fileman:0.4.4' )
+    compile ( (rootProject?.findProject("${coreBasePath}:fileman")) ? project(":${coreBasePath}:fileman") : 'com.github.avaj-java:fileman:0.4.5' )
 
     //LOGBACK
     compile 'ch.qos.logback:logback-classic:1.2.3'
