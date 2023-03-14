@@ -26,6 +26,7 @@ import jaemisseo.man.configuration.reflection.Dependency
 import jaemisseo.man.configuration.data.PropertyProvider
 import jaemisseo.man.configuration.data.Validator
 import jaemisseo.man.PropMan
+import jaemisseo.man.util.HierarchicalHashMap
 import jaemisseo.man.util.Util
 import org.fusesource.jansi.Ansi
 import org.slf4j.Logger
@@ -491,6 +492,9 @@ class CommanderConfig {
                 break
             case List:
                 return 'getList'
+                break
+            case HierarchicalHashMap:
+                return 'getHierarchicalHashMap'
                 break
             case Map:
                 return 'getMap'

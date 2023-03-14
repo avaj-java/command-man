@@ -7,6 +7,9 @@ import jaemisseo.man.configuration.annotation.method.Filter
 import jaemisseo.man.configuration.annotation.type.Data
 import jaemisseo.man.FileMan
 import jaemisseo.man.PropMan
+import jaemisseo.man.util.DotPathUtil
+import jaemisseo.man.util.FlattenDotPathKeyHashMap
+import jaemisseo.man.util.HierarchicalHashMap
 
 /**
  * Created by sujkim on 2017-06-20.
@@ -126,6 +129,30 @@ class PropertyProvider {
         Map map = parse(propertyName)
         return map
     }
+
+    @Filter('getHierarchicalHashMap')
+    HierarchicalHashMap<String, Object> getHierarchicalHashMap(String propertyName){
+        String fullPropertyKey = "${propertyPrefix}${propertyName}".toString()
+        Map<String, Object> properties = (Map<String, Object>) propman.properties
+        Object value = properties.get(fullPropertyKey)
+
+        if (value instanceof String){
+            Map map = parse(propertyName)
+            value = map
+
+        }else{
+            FlattenDotPathKeyHashMap<String, Object> flattenDotPathKeyHashMap = new FlattenDotPathKeyHashMap<>(properties)
+            HierarchicalHashMap<String, Object> hierarchicalHashMap = DotPathUtil.convertFlattenDotPathKeyMapToHierarchicalMap(flattenDotPathKeyHashMap, fullPropertyKey)
+            DotPathUtil.reduce(hierarchicalHashMap){ k, v ->
+                Object parsedValue = propman.parse( fullPropertyKey+ "." +k )
+                return parsedValue
+            }
+            value = hierarchicalHashMap
+        }
+
+        return value
+    }
+
 
     @Filter('getList')
     List getList(String propertyName){
